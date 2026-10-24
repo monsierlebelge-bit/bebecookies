@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gomoku 五子棋 — Joueur contre IA</title>
+<style>
+  :root {
+    --paper:#f3e9d2; --paper-dark:#e6d5ae; --wood:#e2c48d;
+    --imperial:#8b0000; --ink:#2b1d14;
+    --board-size:min(92vw,560px);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:16px;padding:20px 0 28px;color:var(--ink);
+    font-family:"Noto Serif SC","Songti SC","STSong",Georgia,serif;
+    background:radial-gradient(circle at 20% 10%,#fbf5e6 0%,transparent 55%),
+      radial-gradient(circle at 80% 90%,var(--paper-dark) 0%,transparent 60%),var(--paper);
+  }
+  header{text-align:center;padding:0 12px}
+  h1{margin:0;font-size:clamp(1.6rem,5vw,2.4rem);letter-spacing:.2em;color:var(--imperial);font-weight:600}
+  h1 small{display:block;font-size:.45em;letter-spacing:.15em;color:var(--ink);opacity:.7;margin-top:4px;font-weight:400}
+  .controls{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;padding:0 12px;max-width:600px}
+  .control-group{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(139,0,0,.35);border-radius:999px;background:rgba(255,255,255,.35);font-size:.9rem}
+  select{font:inherit;color:var(--ink);background:transparent;border:0;max-width:150px;outline-color:var(--imperial)}
+  .status{min-height:3.2em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 20px;
+    margin:0 12px;border:1px solid var(--imperial);border-radius:999px;background:rgba(255,255,255,.45);
+    backdrop-filter:blur(4px);font-size:clamp(.85rem,3.5vw,1.05rem);text-align:center;transition:background .4s,color .4s}
+  .status.win{background:var(--imperial);color:#fbf1d9}
+  .status.thinking{background:rgba(139,0,0,.1)}
+  .dot{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .dot.black{background:radial-gradient(circle at 35% 30%,#666,#111 60%)}
+  .dot.white{background:radial-gradient(circle at 35% 30%,#fff,#cfcfcf 70%);border:1px solid #aaa}
+  #board{width:var(--board-size);height:var(--board-size);display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);
+    background:linear-gradient(135deg,rgba(255,255,255,.25),transparent 50%),var(--wood);
+    border:3px solid var(--imperial);border-radius:6px;box-shadow:0 0 0 6px rgba(139,0,0,.12),0 18px 40px rgba(60,30,10,.3);touch-action:manipulation}
+  .cell{position:relative;padding:0;margin:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0}
+  .cell::before,.cell::after{content:"";position:absolute;background:var(--imperial);opacity:.75;pointer-events:none}
+  .cell::before{left:0;right:0;top:50%;height:1px}
+  .cell::after{top:0;bottom:0;left:50%;width:1px}
+  .cell.c0::before{left:50%}.cell.c14::before{right:50%}.cell.r0::after{top:50%}.cell.r14::after{bottom:50%}
+  .cell.star .hoshi{position:absolute;left:50%;top:50%;width:22%;height:22%;transform:translate(-50%,-50%);background:var(--imperial);border-radius:50%;pointer-events:none}
+  .ghost{position:absolute;inset:9%;border-radius:50%;opacity:0;transform:scale(.7);transition:opacity .18s ease,transform .18s ease;pointer-events:none;z-index:1}
+  #board.turn-black .ghost{background:#111}
+  #board.turn-white .ghost{background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  #board:not(.over):not(.thinking) .cell:not(.taken):hover .ghost,
+  #board:not(.over):not(.thinking) .cell:not(.taken):focus-visible .ghost{opacity:.35;transform:scale(1)}
+  .cell:focus-visible{outline:2px solid var(--imperial);outline-offset:-3px}
+  #board.over .cell,#board.thinking .cell,.cell.taken{cursor:default}
+  .stone{position:absolute;inset:9%;border-radius:50%;z-index:2;pointer-events:none;animation:drop .35s cubic-bezier(.2,.9,.3,1.2) both;box-shadow:0 3px 5px rgba(0,0,0,.4)}
+  .stone.black{background:radial-gradient(circle at 35% 30%,#707070,#151515 55%,#000)}
+  .stone.white{background:radial-gradient(circle at 35% 30%,#fff,#ececec 55%,#bdbdbd)}
+  @keyframes drop{from{opacity:0;transform:translateY(-18px) scale(1.25)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .stone.last::after{content:"";position:absolute;left:50%;top:50%;width:22%;height:22%;border-radius:50%;transform:translate(-50%,-50%);background:var(--imperial)}
+  .stone.win{animation:drop .35s both,pulse 1.1s ease-in-out .4s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(139,0,0,.7),0 3px 5px rgba(0,0,0,.4)}50%{box-shadow:0 0 0 6px rgba(139,0,0,0),0 3px 5px rgba(0,0,0,.4)}}
+  .actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:0 12px}
+  button.action{font:inherit;font-size:1rem;padding:10px 22px;color:var(--imperial);background:rgba(255,255,255,.18);border:2px solid var(--imperial);border-radius:999px;cursor:pointer;transition:background .25s,color .25s,transform .15s}
+  button.action:hover{background:var(--imperial);color:#fbf1d9}button.action:active{transform:scale(.96)}
+  button.action:disabled{opacity:.5;cursor:wait}
+  .count,.hint{font-size:.85rem;opacity:.78;text-align:center;padding:0 16px}
+  .hint{max-width:580px;line-height:1.5}
+  @media(prefers-reduced-motion:reduce){.stone,.stone.win{animation:none}.ghost{transition:none}}
+</style>
+</head>
+<body>
+<header><h1>五子棋<small>Gomoku · Cinq en ligne · Joueur contre IA</small></h1></header>
+
+<div class="controls" aria-label="Options de jeu">
+  <label class="control-group">Vous jouez
+    <select id="humanColor" aria-label="Couleur du joueur">
+      <option value="black">Noir (先手)</option><option value="white">Blanc (后手)</option>
+    </select>
+  </label>
+  <label class="control-group">Difficulté
+    <select id="difficulty" aria-label="Difficulté de l’IA">
+      <option value="normal">Stratégique</option><option value="hard" selected>Expert</option>
+    </select>
+  </label>
+</div>
+
+<div class="status" id="status" role="status" aria-live="polite"></div>
+<div id="board" class="turn-black" aria-label="Plateau de Gomoku 15x15 (五子棋棋盘)"></div>
+<div class="count" id="count"></div>
+<div class="hint" id="hint">Vous jouez contre l’ordinateur. Les Noirs commencent. L’IA examine les menaces, les coups gagnants et les réponses défensives.</div>
+<div class="actions">
+  <button class="action" id="restart">Recommencer (重新开始)</button>
+  <button class="action" id="undo">Annuler le tour (悔棋)</button>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const SIZE=15, WIN_LENGTH=5;
+  const STARS=[[3,3],[3,11],[7,7],[11,3],[11,11]];
+  const DIRECTIONS=[[0,1],[1,0],[1,1],[1,-1]];
+  const NAMES={black:'Noir (黑棋)',white:'Blanc (白棋)'};
+  const boardEl=document.getElementById('board'),statusEl=document.getElementById('status');
+  const countEl=document.getElementById('count'),hintEl=document.getElementById('hint');
+  const humanColorEl=document.getElementById('humanColor'),difficultyEl=document.getElementById('difficulty');
+  const undoBtn=document.getElementById('undo');
+  let grid,cells=[],current,gameOver,thinking,moves,lastMove,history=[],humanColor='black',aiColor='white',turnToken=0;
+
+  function buildBoard(){
+    for(let r=0;r<SIZE;r++){
+      cells[r]=[];
+      for(let c=0;c<SIZE;c++){
+        const cell=document.createElement('button');cell.type='button';
+        cell.className='cell'+(c===0?' c0':'')+(c===SIZE-1?' c14':'')+(r===0?' r0':'')+(r===SIZE-1?' r14':'');
+        cell.setAttribute('aria-label',`Ligne ${r+1}, colonne ${c+1}`);
+        if(STARS.some(([sr,sc])=>sr===r&&sc===c)){cell.classList.add('star');const h=document.createElement('span');h.className='hoshi';cell.appendChild(h)}
+        const ghost=document.createElement('span');ghost.className='ghost';cell.appendChild(ghost);
+        cell.addEventListener('click',()=>playHuman(r,c));boardEl.appendChild(cell);cells[r][c]=cell;
+      }
+    }
+  }
+  function reset(){
+    turnToken++;grid=Array.from({length:SIZE},()=>Array(SIZE).fill(null));current='black';
+    gameOver=false;thinking=false;moves=0;lastMove=null;history=[];
+    boardEl.classList.remove('over','thinking');boardEl.classList.add('turn-black');
+    for(const row of cells)for(const cell of row){cell.classList.remove('taken');cell.querySelector('.stone')?.remove()}
+    humanColor=humanColorEl.value;aiColor=humanColor==='black'?'white':'black';
+    undoBtn.disabled=true;hintEl.textContent='L’IA évalue les attaques, les défenses et les menaces multiples.';
+    updateStatus();
+    if(humanColor==='white') scheduleAI();
+  }
+  function inBounds(r,c){return r>=0&&r<SIZE&&c>=0&&c<SIZE}
+  function placeStone(r,c,color){
+    if(lastMove)cells[lastMove.r][lastMove.c].querySelector('.stone')?.classList.remove('last');
+    const stone=document.createElement('span');stone.className=`stone ${color} last`;
+    cells[r][c].appendChild(stone);cells[r][c].classList.add('taken');lastMove={r,c,color};
+  }
+  function playMove(r,c,color){
+    if(gameOver||grid[r][c])return false;
+    grid[r][c]=color;moves++;history.push({r,c,color});placeStone(r,c,color);
+    const line=findWinningLine(r,c,color);
+    if(line){gameOver=true;highlight(line);boardEl.classList.add('over');updateStatus({winner:color});return true}
+    if(moves===SIZE*SIZE){gameOver=true;boardEl.classList.add('over');updateStatus({draw:true});return true}
+    current=color==='black'?'white':'black';updateStatus();return true;
+  }
+  function playHuman(r,c){
+    if(gameOver||thinking||current!==humanColor||grid[r][c])return;
+    if(playMove(r,c,humanColor)&&!gameOver)scheduleAI();
+  }
+  function findWinningLine(r,c,color){
+    for(const [dr,dc] of DIRECTIONS){
+      const line=[[r,c]];
+      for(const sign of [1,-1]){
+        let nr=r+dr*sign,nc=c+dc*sign;
+        while(inBounds(nr,nc)&&grid[nr][nc]===color){line.push([nr,nc]);nr+=dr*sign;nc+=dc*sign}
+      }
+      if(line.length===WIN_LENGTH)return line;
+    }
+    return null;
+  }
+  function highlight(line){for(const [r,c] of line)cells[r][c].querySelector('.stone')?.classList.add('win')}
+  function updateStatus(result={}){
+    statusEl.classList.toggle('win',!!result.winner);statusEl.classList.toggle('thinking',thinking);
+    if(result.winner){
+      statusEl.innerHTML=`<span class="dot ${result.winner}"></span><span>${result.winner===humanColor?'Victoire ! (胜利！)':'L’ordinateur gagne (电脑胜利)'} — ${NAMES[result.winner]}</span>`;
+      hintEl.textContent=result.winner===humanColor?'Bravo ! Vous avez gagné.':'La partie est terminée. Lancez une nouvelle partie pour réessayer.';
+    }else if(result.draw){statusEl.textContent='Match nul (平局)';hintEl.textContent='Toutes les cases sont occupées.'}
+    else if(thinking){statusEl.innerHTML='<span class="dot '+aiColor+'"></span><span>L’ordinateur réfléchit… (思考中)</span>'}
+    else{
+      statusEl.innerHTML=`<span class="dot ${current}"></span><span>Tour : ${current===humanColor?'Vous':'Ordinateur'} — ${NAMES[current]}</span>`;
+      boardEl.classList.toggle('turn-black',current==='black');boardEl.classList.toggle('turn-white',current==='white');
+    }
+    countEl.textContent=`Coups : ${moves} (步数)`;undoBtn.disabled=thinking||history.length===0;
+  }
+
+  // NOUVEAU : Score des motifs beaucoup plus agressif sur la défense
+  function patternScore(count,openEnds){
+    if(count>=5)return 100000000;
+    if(count===4&&openEnds===2)return 5000000;  // 4 ouvert = menace de victoire
+    if(count===4&&openEnds===1)return 150000;   // 4 fermé = très fort
+    if(count===3&&openEnds===2)return 100000;   // 3 ouvert = DANGER ABSOLU (bloqué en priorité)
+    if(count===3&&openEnds===1)return 5000;
+    if(count===2&&openEnds===2)return 1000;
+    if(count===2&&openEnds===1)return 100;
+    if(count===1&&openEnds===2)return 10;
+    return 1;
+  }
+  function evaluateLine(r,c,color,dr,dc){
+    let count=1,open=0;
+    for(const sign of [1,-1]){
+      let nr=r+dr*sign,nc=c+dc*sign;
+      while(inBounds(nr,nc)&&grid[nr][nc]===color){count++;nr+=dr*sign;nc+=dc*sign}
+      if(inBounds(nr,nc)&&grid[nr][nc]===null)open++;
+    }
+    return patternScore(count,open);
+  }
+  function evaluateMove(r,c,color){
+    grid[r][c]=color;
+    let score=0;
+    for(const [dr,dc] of DIRECTIONS)score+=evaluateLine(r,c,color,dr,dc);
+    grid[r][c]=null;return score;
+  }
+  function hasExactFiveAt(r,c,color){
+    for(const [dr,dc] of DIRECTIONS){
+      let count=1;
+      for(const s of [1,-1]){let nr=r+dr*s,nc=c+dc*s;while(inBounds(nr,nc)&&grid[nr][nc]===color){count++;nr+=dr*s;nc+=dc*s}}
+      if(count===5)return true;
+    }
+    return false;
+  }
+  
+  // NOUVEAU : Priorité massive à la défense
+  function candidateMoves(limit=14){
+    const found=[];
+    if(moves===0)return [{r:7,c:7,score:0}];
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(grid[r][c]!==null)continue;
+      let nearby=false;
+      for(let dr=-2;dr<=2&&!nearby;dr++)for(let dc=-2;dc<=2;dc++){
+        if((dr||dc)&&inBounds(r+dr,c+dc)&&grid[r+dr][c+dc]!==null){nearby=true;break}
+      }
+      if(!nearby)continue;
+      const attack=evaluateMove(r,c,aiColor),defense=evaluateMove(r,c,humanColor);
+      // La défense est multipliée par 2.5 pour forcer l'IA à bloquer
+      const score=Math.max(attack,defense*2.5)+attack*0.6+defense*1.5+Math.random()*.01;
+      found.push({r,c,score,attack,defense});
+    }
+    found.sort((a,b)=>b.score-a.score);
+    return found.slice(0,limit);
+  }
+  
+  function immediateWinningMove(color){
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(grid[r][c]===null){
+      grid[r][c]=color;const win=hasExactFiveAt(r,c,color);grid[r][c]=null;
+      if(win)return {r,c};
+    }
+    return null;
+  }
+  function evaluateBoard(){
+    let total=0;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(grid[r][c]){
+      const color=grid[r][c],sign=color===aiColor?1:-1;
+      for(const [dr,dc] of DIRECTIONS){
+        const pr=r-dr,pc=c-dc;
+        if(inBounds(pr,pc)&&grid[pr][pc]===color)continue;
+        let count=0,nr=r,nc=c;
+        while(inBounds(nr,nc)&&grid[nr][nc]===color){count++;nr+=dr;nc+=dc}
+        let open=0;
+        if(inBounds(pr,pc)&&grid[pr][pc]===null)open++;
+        if(inBounds(nr,nc)&&grid[nr][nc]===null)open++;
+        if(count===5)return sign*100000000;
+        if(count>5)continue;
+        total+=sign*patternScore(count,open);
+      }
+    }
+    return total;
+  }
+  function minimax(depth,alpha,beta,player,limit){
+    const winnerScore=evaluateBoard();
+    if(Math.abs(winnerScore)>=100000000)return winnerScore;
+    if(depth===0)return winnerScore;
+    const candidates=candidateMoves(limit);
+    if(!candidates.length)return winnerScore;
+    const maximizing=player===aiColor;
+    let best=maximizing?-Infinity:Infinity;
+    for(const m of candidates){
+      grid[m.r][m.c]=player;
+      const score=minimax(depth-1,alpha,beta,player===aiColor?humanColor:aiColor,Math.max(4, limit-2));
+      grid[m.r][m.c]=null;
+      if(maximizing){best=Math.max(best,score);alpha=Math.max(alpha,best)}
+      else{best=Math.min(best,score);beta=Math.min(beta,best)}
+      if(beta<=alpha)break;
+    }
+    return best;
+  }
+  
+  // NOUVEAU : Profondeur augmentée (4 coups à l'avance en mode Expert)
+  function chooseAIMove(){
+    const win=immediateWinningMove(aiColor);if(win)return win;
+    const block=immediateWinningMove(humanColor);if(block)return block;
+    
+    const mode=difficultyEl.value;
+    const limit=mode==='hard'?8:14;
+    const depth=mode==='hard'?4:2; 
+    
+    const candidates=candidateMoves(limit);
+    if(!candidates.length)return null;
+    let best=candidates[0],bestScore=-Infinity;
+    
+    for(const m of candidates){
+      grid[m.r][m.c]=aiColor;
+      let score=evaluateBoard();
+      if(hasExactFiveAt(m.r,m.c,aiColor))score+=100000000;
+      if(depth>1)score=minimax(depth-1,-Infinity,Infinity,humanColor,Math.max(4,limit-2));
+      grid[m.r][m.c]=null;
+      score+=m.defense*.15;
+      if(score>bestScore){bestScore=score;best=m}
+    }
+    return {r:best.r,c:best.c};
+  }
+  
+  function scheduleAI(){
+    if(gameOver)return;
+    thinking=true;boardEl.classList.add('thinking');updateStatus();
+    const token=++turnToken;
+    setTimeout(()=>{
+      if(token!==turnToken||gameOver)return;
+      const move=chooseAIMove();
+      thinking=false;boardEl.classList.remove('thinking');
+      if(move)playMove(move.r,move.c,aiColor);
+      if(!gameOver)updateStatus();
+    },90);
+  }
+  function undoTurn(){
+    if(thinking||history.length===0)return;
+    turnToken++;gameOver=false;thinking=false;
+    let removeCount=1;
+    if(history[history.length-1].color===aiColor)removeCount=history.length>=2?2:1;
+    for(let i=0;i<removeCount&&history.length;i++){
+      const m=history.pop();grid[m.r][m.c]=null;cells[m.r][m.c].classList.remove('taken');cells[m.r][m.c].querySelector('.stone')?.remove();moves--;
+    }
+    lastMove=history.length?{...history[history.length-1]}:null;
+    if(lastMove)cells[lastMove.r][lastMove.c].querySelector('.stone')?.classList.add('last');
+    boardEl.classList.remove('over','thinking');
+    current=history.length? (history[history.length-1].color==='black'?'white':'black'):'black';
+    updateStatus();
+    if(current===aiColor)scheduleAI();
+  }
+  document.getElementById('restart').addEventListener('click',reset);
+  undoBtn.addEventListener('click',undoTurn);
+  humanColorEl.addEventListener('change',reset);
+  difficultyEl.addEventListener('change',()=>{hintEl.textContent=difficultyEl.value==='hard'?'Mode Expert : recherche tactique plus approfondie.':'Mode Stratégique : jeu plus rapide, axé sur les menaces et les défenses.'});
+  buildBoard();reset();
+})();
+</script>
+</body>
+</html>
