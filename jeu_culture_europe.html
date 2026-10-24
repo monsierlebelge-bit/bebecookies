@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cap sur l’Europe de l’Ouest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EAF0F4;--ink:#10233A;--muted:#4B6178;--card:#fff;--line:#C4D2DE;--accent:#1F5FBF;--on:#fff;--good:#1E7B4F;--bad:#B3392F;--gb:#E3F3EA;--bb:#F8E4E1;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1A27;--ink:#E8EEF4;--muted:#9DB0C3;--card:#162637;--line:#2B4157;--accent:#6FA8FF;--on:#0E1A27;--good:#5FD39A;--bad:#FF8A7E;--gb:#123B2A;--bb:#43201C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1A27;--ink:#E8EEF4;--muted:#9DB0C3;--card:#162637;--line:#2B4157;--accent:#6FA8FF;--on:#0E1A27;--good:#5FD39A;--bad:#FF8A7E;--gb:#123B2A;--bb:#43201C;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:520px;margin:0 auto;padding:20px 18px 40px}
+h1,h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;line-height:1.15}
+h1{font-size:34px;font-weight:800;margin-bottom:16px}
+h2{font-size:21px;font-weight:600}
+.flags{display:flex;gap:8px;margin-bottom:14px}
+.flag{display:inline-block;width:30px;height:20px;border:1px solid var(--line);border-radius:3px;vertical-align:-4px;margin-right:8px;flex:none}
+.flags .flag{width:46px;height:31px;margin:0}
+.sub{color:var(--muted);margin:0 0 22px}
+.card{display:block;width:100%;text-align:left;padding:16px;margin:12px 0;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:inherit;font:inherit;cursor:pointer}
+.card h2{margin-bottom:4px}
+.card span{color:var(--muted)}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;color:var(--muted);font-size:15px}
+.back{background:none;border:0;color:var(--accent);font:inherit;padding:8px 0;cursor:pointer}
+.where{margin:0 0 6px;color:var(--muted)}
+.q{margin:0 0 14px;font-size:23px}
+.clues{margin:0 0 8px;padding-left:22px}
+.clues li{margin:6px 0}
+.hint{color:var(--muted);font-size:15px;margin:0 0 10px}
+.opt{display:block;width:100%;text-align:left;min-height:48px;padding:12px 14px;margin:8px 0;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;cursor:pointer}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--good);background:var(--gb)}
+.opt.ko{border-color:var(--bad);background:var(--bb)}
+.fact{margin:16px 0 4px;padding:12px 14px;border-left:4px solid var(--accent);background:var(--card)}
+.go{display:block;width:100%;min-height:48px;margin:14px 0 0;padding:12px;border:0;border-radius:10px;background:var(--accent);color:var(--on);font:inherit;font-weight:600;cursor:pointer}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--ink)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.score{font:800 56px/1 "Bricolage Grotesque",system-ui,sans-serif;margin:8px 0 12px}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+<script type="application/json" id="d">
+{"quiz":[
+{"c":"DE","q":"Quelle grande fête de la bière se tient à Munich ?","o":["L’Oktoberfest","Le Karneval de Cologne","Le marché de Noël de Nuremberg","La Saint-Martin"],"f":"Malgré son nom, elle commence fin septembre et se termine début octobre."},
+{"c":"DE","q":"Quelle ville allemande était coupée en deux par un mur jusqu’en 1989 ?","o":["Berlin","Hambourg","Munich","Dresde"],"f":"Le mur de Berlin est tombé le 9 novembre 1989."},
+{"c":"DE","q":"Quel conte des frères Grimm met en scène une fillette, une grand-mère et un loup ?","o":["Le Petit Chaperon rouge","Le Petit Poucet","Pinocchio","La Petite Sirène"],"f":"Les frères Grimm ont rassemblé des contes populaires allemands au XIXe siècle. Pinocchio, lui, est italien."},
+{"c":"FR","q":"Quel monument parisien a été construit pour l’Exposition universelle de 1889 ?","o":["La tour Eiffel","L’Arc de triomphe","Le Sacré-Cœur","Le Grand Palais"],"f":"Elle ne devait rester que vingt ans, mais elle est devenue le symbole de Paris."},
+{"c":"FR","q":"Quel fromage à pâte persillée vieillit dans les caves du Combalou ?","o":["Le roquefort","Le camembert","Le comté","Le brie"],"f":"Les caves naturelles du Combalou, dans l’Aveyron, donnent au roquefort son goût."},
+{"c":"FR","q":"Quel événement rappelle la fête nationale du 14 juillet ?","o":["La prise de la Bastille en 1789","Le sacre de Napoléon","La fin de la Première Guerre mondiale","Le couronnement de Louis XIV"],"f":"La date rappelle aussi la fête de la Fédération, en 1790."},
+{"c":"ES","q":"Quel architecte catalan a donné à la Sagrada Família son style unique ?","o":["Antoni Gaudí","Diego Velázquez","Joan Miró","Pablo Picasso"],"f":"Commencée en 1882, la basilique est restée en chantier pendant plus d’un siècle."},
+{"c":"ES","q":"Quelle danse espagnole est née en Andalousie ?","o":["Le flamenco","Le tango","La samba","La valse"],"f":"L’UNESCO l’a inscrit au patrimoine culturel immatériel en 2010."},
+{"c":"ES","q":"Quel plat à base de riz est originaire de Valence ?","o":["La paella","Le gaspacho","La tortilla","Les churros"],"f":"Son nom vient de la grande poêle plate dans laquelle on la prépare."},
+{"c":"IT","q":"Quelle pizza porte les couleurs du drapeau italien : tomate, mozzarella, basilic ?","o":["La margherita","La quatre fromages","La calzone","La napolitaine"],"f":"Selon la légende, elle porte le nom de la reine Marguerite de Savoie, venue à Naples en 1889."},
+{"c":"IT","q":"Qui a peint le plafond de la chapelle Sixtine, au Vatican ?","o":["Michel-Ange","Raphaël","Botticelli","Titien"],"f":"Il y a travaillé de 1508 à 1512."},
+{"c":"IT","q":"Quelle ville italienne est bâtie sur une lagune et traversée de canaux ?","o":["Venise","Florence","Naples","Vérone"],"f":"Venise s’étend sur une centaine de petits îlots reliés par des ponts."},
+{"c":"BE","q":"Avec quel accompagnement sert-on traditionnellement les moules en Belgique ?","o":["Des frites","Des gnocchis","Du risotto","Des pierogis"],"f":"Belges et Français se disputent l’origine des frites, mais le duo moules-frites est un classique belge."},
+{"c":"BE","q":"Quel instrument a été inventé par le Belge Adolphe Sax ?","o":["Le saxophone","La clarinette","La trompette","Le violon"],"f":"Adolphe Sax, né à Dinant, l’a breveté à Paris en 1846."},
+{"c":"BE","q":"Que brassent les moines trappistes belges, célèbres dans le monde entier ?","o":["De la bière","Du vin","Du cidre","Du whisky"],"f":"La culture de la bière belge est inscrite au patrimoine immatériel de l’UNESCO depuis 2016."}
+],
+"who":[
+{"c":"IT","k":["Je suis né en Toscane en 1452.","J’ai dessiné des machines volantes et étudié l’anatomie.","J’ai peint la Joconde."],"o":["Léonard de Vinci","Michel-Ange","Galilée","Raphaël"],"f":"Léonard de Vinci est mort en France, à Amboise, en 1519."},
+{"c":"DE","k":["Je suis né à Bonn.","Je suis devenu sourd, mais j’ai continué à composer.","Ma Neuvième Symphonie contient l’Ode à la joie."],"o":["Beethoven","Mozart","Bach","Schubert"],"f":"La mélodie de l’Ode à la joie est devenue l’hymne de l’Union européenne."},
+{"c":"FR","k":["Je suis né en Corse en 1769.","J’ai été empereur des Français.","J’ai perdu la bataille de Waterloo, en Belgique, en 1815."],"o":["Napoléon Bonaparte","Louis XIV","Charlemagne","Charles de Gaulle"],"f":"Waterloo se trouve en Belgique, au sud de Bruxelles."},
+{"c":"ES","k":["Je suis né à Figueres, en Catalogne, en 1904.","Je suis un peintre surréaliste à la moustache relevée.","J’ai peint des montres molles qui fondent."],"o":["Salvador Dalí","Pablo Picasso","Francisco de Goya","Joan Miró"],"f":"Son tableau La Persistance de la mémoire date de 1931."},
+{"c":"ES","k":["Je suis un écrivain espagnol né en 1547.","J’ai écrit un roman où un homme se bat contre des moulins à vent.","Mon héros s’appelle Don Quichotte."],"o":["Miguel de Cervantes","Federico García Lorca","Lope de Vega","Pedro Calderón"],"f":"Le premier tome de Don Quichotte est paru en 1605."},
+{"c":"BE","k":["Je suis né à Bruxelles en 1907.","Mon vrai nom est Georges Remi.","J’ai créé Tintin."],"o":["Hergé","Franquin","Peyo","Morris"],"f":"Le nom Hergé vient des initiales inversées de Georges Remi : R. G."},
+{"c":"DE","k":["Je suis né à Francfort en 1749.","J’ai écrit la pièce Faust.","Je suis l’un des plus grands écrivains de langue allemande."],"o":["Goethe","Schiller","Thomas Mann","Franz Kafka"],"f":"Goethe était aussi scientifique et ministre à la cour de Weimar."},
+{"c":"FR","k":["Je suis une chanteuse née à Paris en 1915.","On m’appelait la Môme.","J’ai chanté La Vie en rose."],"o":["Édith Piaf","Dalida","Joséphine Baker","Barbara"],"f":"La Vie en rose date de 1947."}
+]}
+</script>
+<script>
+const $=s=>document.querySelector(s),app=$('#app'),D=JSON.parse($('#d').textContent);
+const F={DE:['Allemagne','to bottom,#000 0 33.3%,#d00 33.3% 66.6%,#fc0 66.6%'],FR:['France','to right,#0055a4 0 33.3%,#fff 33.3% 66.6%,#ef4135 66.6%'],ES:['Espagne','to bottom,#c60b1e 0 25%,#ffc400 25% 75%,#c60b1e 75%'],IT:['Italie','to right,#009246 0 33.3%,#fff 33.3% 66.6%,#ce2b37 66.6%'],BE:['Belgique','to right,#000 0 33.3%,#fae042 33.3% 66.6%,#ed2939 66.6%']};
+const flag=c=>`<span class="flag" style="background:linear-gradient(${F[c][1]})"></span>`;
+const sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+let S={};
+function home(){
+  app.innerHTML=`<h1>Cap sur l’Europe de l’Ouest</h1><div class="flags">${Object.keys(F).map(flag).join('')}</div><p class="sub">Allemagne, France, Espagne, Italie, Belgique : teste ta culture.</p><button class="card" data-m="q"><h2>Quiz culture</h2><span>10 questions tirées au hasard, 1 point chacune.</span></button><button class="card" data-m="w"><h2>Qui suis-je ?</h2><span>8 personnages. Moins tu prends d’indices, plus tu gagnes de points (jusqu’à 3).</span></button>`;
+  app.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>start(b.dataset.m));
+}
+function start(m){S={m,list:m=='q'?sh(D.quiz).slice(0,10):sh(D.who),i:0,score:0};round()}
+function round(){const it=S.list[S.i];S.step=1;S.dis=[];S.done=false;S.pick=null;S.win=false;S.opts=sh(it.o);window.scrollTo(0,0);draw()}
+function draw(){
+  const it=S.list[S.i],n=S.list.length,w=S.m=='w';
+  let h=`<div class="top"><button class="back" id="bk">Menu</button><span>${w?'Personnage':'Question'} ${S.i+1} sur ${n}</span><span>${S.score} point${S.score>1?'s':''}</span></div>`;
+  if(!w){h+=`<p class="where">${flag(it.c)}${F[it.c][0]}</p><h2 class="q">${it.q}</h2>`}
+  else{h+=`<h2 class="q">Qui suis-je ?</h2><ol class="clues">${it.k.slice(0,S.step).map(k=>`<li>${k}</li>`).join('')}</ol>`;
+    if(!S.done)h+=`<p class="hint">Bonne réponse maintenant : ${4-S.step} point${4-S.step>1?'s':''}.</p>`}
+  S.opts.forEach((o,k)=>{
+    let c='opt';
+    if(o==it.o[0]){if(S.done)c+=' ok'}else if(S.dis.includes(o)||S.pick==o)c+=' ko';
+    h+=`<button class="${c}" data-k="${k}"${S.done||S.dis.includes(o)?' disabled':''}>${o}</button>`;
+  });
+  if(w&&!S.done&&S.step<3)h+=`<button class="go ghost" id="hint">Indice suivant (−1 point)</button>`;
+  if(S.done){
+    h+=`<div class="fact"><b>${S.win?'Bien joué.':'Pas cette fois.'}</b> ${w?flag(it.c)+F[it.c][0]+'. ':''}${it.f}</div><button class="go" id="nx">${S.i+1<n?'Suivant':'Voir mon score'}</button>`;
+  }
+  app.innerHTML=h;
+  app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+  $('#bk').onclick=home;
+  const x=$('#hint');if(x)x.onclick=()=>{S.step++;draw()};
+  const y=$('#nx');if(y)y.onclick=next;
+}
+function pick(k){
+  const it=S.list[S.i],o=S.opts[k];
+  if(o==it.o[0]){S.done=true;S.win=true;S.pick=o;S.score+=S.m=='q'?1:4-S.step}
+  else if(S.m=='q'){S.done=true;S.pick=o}
+  else{S.dis.push(o);if(S.step<3)S.step++;else{S.done=true;S.pick=o}}
+  draw();
+}
+function next(){S.i++;S.i<S.list.length?round():end()}
+function end(){
+  const max=S.m=='q'?S.list.length:S.list.length*3,r=S.score/max;
+  const msg=r>=.8?'Excellent voyage !':r>=.5?'Pas mal, encore un petit détour.':'Premier voyage : on repart ?';
+  app.innerHTML=`<h1>${msg}</h1><p class="score">${S.score} / ${max}</p><p class="sub">${S.m=='q'?'Quiz culture':'Qui suis-je ?'}, terminé.</p><button class="go" id="again">Rejouer</button><button class="go ghost" id="menu">Retour au menu</button>`;
+  $('#again').onclick=()=>start(S.m);$('#menu').onclick=home;window.scrollTo(0,0);
+}
+home();
+</script>
+</body>
+</html>
