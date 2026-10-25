@@ -1,86 +1,375 @@
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gomoku IA Extrême</title><style>:root{--p:#f3e9d2;--pd:#e6d5ae;--w:#e2c48d;--i:#8b0000;--k:#2b1d14;--b:min(92vw,560px)}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px 0 28px;color:var(--k);font-family:Georgia,serif;background:radial-gradient(circle at 20% 10%,#fbf5e6 0,transparent 55%),radial-gradient(circle at 80% 90%,var(--pd) 0,transparent 60%),var(--p)}header{text-align:center}h1{margin:0;font-size:1.8rem;letter-spacing:.2em;color:var(--i)}h1 small{display:block;font-size:.45em;letter-spacing:.15em;color:var(--k);opacity:.7;margin-top:4px}.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.control-group{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(139,0,0,.35);border-radius:99px;background:rgba(255,255,255,.35);font-size:.9rem}select{font:inherit;color:var(--k);background:transparent;border:0;outline:0}.status{min-height:3.2em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 20px;border:1px solid var(--i);border-radius:99px;background:rgba(255,255,255,.45);font-size:1rem;text-align:center}.status.win{background:var(--i);color:#fbf1d9}.status.thinking{background:rgba(139,0,0,.1)}.dot{width:16px;height:16px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.4)}.dot.black{background:radial-gradient(circle at 35% 30%,#666,#111 60%)}.dot.white{background:radial-gradient(circle at 35% 30%,#fff,#cfcfcf 70%);border:1px solid #aaa}#board{width:var(--b);height:var(--b);display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);background:linear-gradient(135deg,rgba(255,255,255,.25),transparent 50%),var(--w);border:3px solid var(--i);border-radius:6px;box-shadow:0 18px 40px rgba(60,30,10,.3);touch-action:manipulation}.cell{position:relative;padding:0;margin:0;border:0;background:transparent;cursor:pointer;min-width:0;min-height:0}.cell::before,.cell::after{content:"";position:absolute;background:var(--i);opacity:.75;pointer-events:none}.cell::before{left:0;right:0;top:50%;height:1px}.cell::after{top:0;bottom:0;left:50%;width:1px}.cell.c0::before{left:50%}.cell.c14::before{right:50%}.cell.r0::after{top:50%}.cell.r14::after{bottom:50%}.cell.star .hoshi{position:absolute;left:50%;top:50%;width:22%;height:22%;transform:translate(-50%,-50%);background:var(--i);border-radius:50%}.ghost{position:absolute;inset:9%;border-radius:50%;opacity:0;transition:.18s;pointer-events:none;z-index:1}#board.turn-black .ghost{background:#111}#board.turn-white .ghost{background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}#board:not(.over):not(.thinking) .cell:not(.taken):hover .ghost{opacity:.35;transform:scale(1)}.stone{position:absolute;inset:9%;border-radius:50%;z-index:2;pointer-events:none;animation:d .35s both;box-shadow:0 3px 5px rgba(0,0,0,.4)}.stone.black{background:radial-gradient(circle at 35% 30%,#707070,#151515 55%,#000)}.stone.white{background:radial-gradient(circle at 35% 30%,#fff,#ececec 55%,#bdbdbd)}@keyframes d{from{opacity:0;transform:translateY(-18px) scale(1.25)}to{opacity:1;transform:translateY(0) scale(1)}}.stone.last::after{content:"";position:absolute;left:50%;top:50%;width:22%;height:22%;border-radius:50%;transform:translate(-50%,-50%);background:var(--i)}.stone.win{animation:d .35s both,p 1.1s ease-in-out .4s infinite}@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(139,0,0,.7)}50%{box-shadow:0 0 0 6px rgba(139,0,0,0)}}.actions{display:flex;gap:10px}button.action{font:inherit;font-size:1rem;padding:10px 22px;color:var(--i);background:rgba(255,255,255,.18);border:2px solid var(--i);border-radius:99px;cursor:pointer}button.action:hover{background:var(--i);color:#fbf1d9}button.action:disabled{opacity:.5}.hint{font-size:.85rem;opacity:.78;text-align:center;padding:0 16px;max-width:600px}</style></head><body>
-<header><h1>五子棋<small>Gomoku · IA Extrême V2</small></h1></header>
-<div class="controls"><label class="control-group">Vous jouez<select id="humanColor"><option value="black">Noir (先手)</option><option value="white">Blanc (后手)</option></select></label><label class="control-group">Difficulté<select id="difficulty"><option value="normal">Stratégique</option><option value="hard" selected>Extrême</option></select></label></div>
-<div class="status" id="status"></div><div id="board" class="turn-black"></div><div class="hint" id="hint">L’IA analyse vos lignes avec une précision chirurgicale.</div>
-<div class="actions"><button class="action" id="restart">Recommencer</button><button class="action" id="undo">Annuler</button></div>
-<script>(()=>{'use strict';const S=15,D=[[0,1],[1,0],[1,1],[1,-1]],ST=[[3,3],[3,11],[7,7],[11,3],[11,11]];const B=document.getElementById('board'),St=document.getElementById('status'),H=document.getElementById('hint'),HC=document.getElementById('humanColor'),DF=document.getElementById('difficulty'),U=document.getElementById('undo');let G,C=[],cur,ov,thk,mv,hist=[],hc='black',ac='white',tk=0,lm=null;
-function build(){for(let r=0;r<S;r++){C[r]=[];for(let c=0;c<S;c++){const el=document.createElement('button');el.className='cell'+(c===0?' c0':'')+(c===14?' c14':'')+(r===0?' r0':'')+(r===14?' r14':'');if(ST.some(([sr,sc])=>sr===r&&sc===c)){el.classList.add('star');const h=document.createElement('span');h.className='hoshi';el.appendChild(h)}const g=document.createElement('span');g.className='ghost';el.appendChild(g);el.onclick=()=>playHuman(r,c);B.appendChild(el);C[r][c]=el}}}
-function reset(){tk++;G=Array.from({length:S},()=>Array(S).fill(null));cur='black';ov=false;thk=false;mv=0;hist=[];lm=null;B.classList.remove('over','thinking');B.classList.add('turn-black');for(const row of C)for(const el of row){el.classList.remove('taken');el.querySelector('.stone')?.remove()}hc=HC.value;ac=hc==='black'?'white':'black';U.disabled=true;upd();if(hc==='white')sched()}
-function ib(r,c){return r>=0&&r<S&&c>=0&&c<S}
-function place(r,c,col){if(lm)C[lm.r][lm.c].querySelector('.stone')?.classList.remove('last');const s=document.createElement('span');s.className=`stone ${col} last`;C[r][c].appendChild(s);C[r][c].classList.add('taken');lm={r,c,col}}
-function move(r,c,col){if(ov||G[r][c])return false;G[r][c]=col;mv++;hist.push({r,c,col});place(r,c,col);const line=win(r,c,col);if(line){ov=true;hl(line);B.classList.add('over');upd({winner:col});return true}if(mv===S*S){ov=true;B.classList.add('over');upd({draw:true});return true}cur=col==='black'?'white':'black';upd();return true}
-function playHuman(r,c){if(ov||thk||cur!==hc||G[r][c])return;if(move(r,c,hc)&&!ov)sched()}
-function win(r,c,col){for(const[dr,dc]of D){const line=[[r,c]];for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){line.push([nr,nc]);nr+=dr*s;nc+=dc*s}}if(line.length>=5)return line.slice(0,5)}return null}
-function hl(l){for(const[r,c]of l)C[r][c].querySelector('.stone')?.classList.add('win')}
-function upd(res={}){St.classList.toggle('win',!!res.winner);St.classList.toggle('thinking',thk);if(res.winner){St.innerHTML=res.winner===hc?'<span class="dot black"></span><span>Victoire !</span>':'<span class="dot white"></span><span>L’IA gagne.</span>';H.textContent=res.winner===hc?'Tu as battu la V2. Respect.':'La V2 a bloqué toutes tes lignes.';return}if(res.draw){St.textContent='Match nul';return}if(thk){St.innerHTML=`<span class="dot ${ac}"></span><span>Analyse chirurgicale…</span>`;return}St.innerHTML=`<span class="dot ${cur}"></span><span>Tour : ${cur===hc?'Vous':'Ordinateur'}</span>`;B.classList.toggle('turn-black',cur==='black');B.classList.toggle('turn-white',cur==='white');U.disabled=thk||hist.length===0}
-function sched(){if(ov)return;thk=true;B.classList.add('thinking');upd();const t=++tk;setTimeout(()=>{if(t!==tk||ov)return;const m=choose();thk=false;B.classList.remove('thinking');if(m)move(m.r,m.c,ac);if(!ov)upd()},50)}
-function undo(){if(thk||hist.length===0)return;tk++;ov=false;thk=false;let rc=1;if(hist[hist.length-1].col===ac&&hist.length>=2)rc=2;for(let i=0;i<rc&&hist.length;i++){const m=hist.pop();G[m.r][m.c]=null;C[m.r][m.c].classList.remove('taken');C[m.r][m.c].querySelector('.stone')?.remove();mv--}lm=hist.length?{...hist[hist.length-1]}:null;if(lm)C[lm.r][lm.c].querySelector('.stone')?.classList.add('last');B.classList.remove('over','thinking');cur=hist.length?(hist[hist.length-1].col==='black'?'white':'black'):'black';upd();if(cur===ac)sched()}
-const WS=1e9,FS=120000,OS=18000,TS=3500,OT=800,TW=120,CFG={normal:{dep:4,t:300,c:10,v:4},hard:{dep:8,t:1500,c:14,v:8}};let DL=0;const opp=c=>c==='black'?'white':'black';
-function chk(r,c,col){for(const[dr,dc]of D){let n=1;for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr*s;nc+=dc*s}}if(n>=5)return true}return false}
-// NOUVELLE FONCTION D'ÉVALUATION (Scan de lignes, plus de fenêtres glissantes)
-function evalB(){
-  let a=0,h=0;
-  for(let r=0;r<S;r++)for(let c=0;c<S;c++){
-    if(!G[r][c])continue;
-    const col=G[r][c],sgn=(col===ac)?1:-1;
-    for(const[dr,dc]of D){
-      const pr=r-dr,pc=c-dc;
-      if(ib(pr,pc)&&G[pr][pc]===col)continue; // On ne compte qu'une fois par ligne
-      let n=0,nr=r,nc=c;
-      while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr;nc+=dc}
-      let o=0;
-      if(ib(pr,pc)&&!G[pr][pc])o++;
-      if(ib(nr,nc)&&!G[nr][nc])o++;
-      let sc=0;
-      if(n>=5)sc=WS;else if(n===4)sc=(o>=1?FS:FS*.3);else if(n===3)sc=(o===2?OS:TS);else if(n===2)sc=(o===2?OT:TW);else if(n===1&&o===2)sc=10;
-      if(sgn===1)a+=sc;else h+=sc;
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gomoku · IA Extrême</title>
+
+<style>
+:root {
+  --paper:#f3e9d2; --shade:#e6d5ae; --wood:#e2c48d;
+  --ink:#8b0000; --text:#2b1d14; --size:min(92vw,560px);
+}
+* { box-sizing:border-box }
+body {
+  margin:0; min-height:100vh; padding:20px 0 28px;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:16px; color:var(--text);
+  font-family:Georgia,serif;
+  background:
+    radial-gradient(circle at 20% 10%,#fbf5e6,transparent 55%),
+    radial-gradient(circle at 80% 90%,var(--shade),transparent 60%),
+    var(--paper);
+}
+header,.hint { text-align:center }
+h1 { margin:0; color:var(--ink); font-size:1.8rem; letter-spacing:.2em }
+h1 small {
+  display:block; margin-top:4px; color:var(--text);
+  font-size:.45em; letter-spacing:.15em; opacity:.7;
+}
+.controls,.actions { display:flex; flex-wrap:wrap; justify-content:center; gap:8px }
+.control {
+  display:flex; align-items:center; gap:7px; padding:7px 10px;
+  border:1px solid #8b000059; border-radius:99px;
+  background:#ffffff59; font-size:.9rem;
+}
+select { border:0; background:transparent; color:inherit; font:inherit }
+button:focus-visible,select:focus-visible { outline:3px solid #b56828; outline-offset:3px }
+.status {
+  min-height:3.2em; display:flex; align-items:center;
+  justify-content:center; gap:12px; padding:8px 20px;
+  border:1px solid var(--ink); border-radius:99px;
+  background:#ffffff73; text-align:center;
+}
+.status.win { background:var(--ink); color:#fbf1d9 }
+.status.thinking { background:#8b00001a }
+.dot {
+  flex:none; width:16px; height:16px; border-radius:50%;
+  box-shadow:0 1px 3px #0006;
+}
+.dot.black,.stone.black { background:radial-gradient(circle at 35% 30%,#707070,#151515 55%,#000) }
+.dot.white,.stone.white { background:radial-gradient(circle at 35% 30%,#fff,#ececec 55%,#bdbdbd) }
+.dot.white { border:1px solid #aaa }
+#board {
+  width:var(--size); height:var(--size); display:grid;
+  grid-template:repeat(15,1fr)/repeat(15,1fr);
+  background:linear-gradient(135deg,#ffffff40,transparent 50%),var(--wood);
+  border:3px solid var(--ink); border-radius:6px;
+  box-shadow:0 18px 40px #3c1e0a4d; touch-action:manipulation;
+}
+.cell {
+  position:relative; min-width:0; min-height:0; padding:0; margin:0;
+  border:0; background:transparent; cursor:pointer;
+}
+.cell::before,.cell::after {
+  content:""; position:absolute; background:var(--ink);
+  opacity:.75; pointer-events:none;
+}
+.cell::before { left:0; right:0; top:50%; height:1px }
+.cell::after { top:0; bottom:0; left:50%; width:1px }
+.cell.left::before { left:50% }
+.cell.right::before { right:50% }
+.cell.top::after { top:50% }
+.cell.bottom::after { bottom:50% }
+.hoshi {
+  position:absolute; left:50%; top:50%; width:22%; height:22%;
+  transform:translate(-50%,-50%); background:var(--ink); border-radius:50%;
+}
+.ghost,.stone { position:absolute; inset:9%; border-radius:50%; pointer-events:none }
+.ghost { z-index:1; opacity:0; transition:opacity .18s }
+#board[data-turn="black"] .ghost { background:#111 }
+#board[data-turn="white"] .ghost { background:#fff; box-shadow:0 0 0 1px #0004 }
+#board:not(.over):not(.thinking) .cell:not(.taken):is(:hover,:focus-visible) .ghost { opacity:.35 }
+.stone { z-index:2; animation:drop .3s both; box-shadow:0 3px 5px #0006 }
+.stone.last::after {
+  content:""; position:absolute; left:50%; top:50%; width:22%; height:22%;
+  transform:translate(-50%,-50%); background:var(--ink); border-radius:50%;
+}
+.stone.win { animation:drop .3s both,pulse 1.1s ease-in-out .4s infinite }
+.action {
+  padding:10px 22px; border:2px solid var(--ink); border-radius:99px;
+  background:#ffffff2e; color:var(--ink); font:inherit; cursor:pointer;
+}
+.action:hover:not(:disabled) { background:var(--ink); color:#fbf1d9 }
+.action:disabled { opacity:.5; cursor:default }
+.hint { max-width:600px; padding:0 16px; font-size:.85rem; opacity:.78 }
+@keyframes drop {
+  from { opacity:0; transform:translateY(-18px) scale(1.25) }
+  to { opacity:1; transform:translateY(0) scale(1) }
+}
+@keyframes pulse {
+  0%,100% { box-shadow:0 0 0 0 #8b0000b3 }
+  50% { box-shadow:0 0 0 6px #8b000000 }
+}
+@media (prefers-reduced-motion:reduce) {
+  .stone,.stone.win { animation:none }
+  .ghost { transition:none }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>五子棋<small>Gomoku · IA Extrême</small></h1>
+</header>
+
+<div class="controls">
+  <label class="control">Vous jouez
+    <select id="humanColor">
+      <option value="black">Noir · premier</option>
+      <option value="white">Blanc · second</option>
+    </select>
+  </label>
+  <label class="control">Difficulté
+    <select id="difficulty">
+      <option value="normal">Stratégique</option>
+      <option value="hard" selected>Extrême</option>
+    </select>
+  </label>
+</div>
+
+<div id="status" class="status" role="status" aria-live="polite"></div>
+<div id="board" data-turn="black" role="group" aria-label="Plateau de Gomoku"></div>
+<div id="hint" class="hint">Alignez au moins cinq pierres pour gagner.</div>
+
+<div class="actions">
+  <button id="restart" class="action" type="button">Recommencer</button>
+  <button id="undo" class="action" type="button">Annuler</button>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // Configuration
+  const SIZE = 15, BLACK = 1, WHITE = 2, WIN = 1e9;
+  const DIRS = [[0,1],[1,0],[1,1],[1,-1]];
+  const STARS = new Set(["3,3","3,11","7,7","11,3","11,11"]);
+  const LEVELS = {
+    normal: { depth:4, time:300, width:10 },
+    hard:   { depth:8, time:1500, width:14 }
+  };
+  const $ = id => document.getElementById(id);
+  const ui = {
+    board:$("board"), status:$("status"), hint:$("hint"),
+    color:$("humanColor"), level:$("difficulty"),
+    restart:$("restart"), undo:$("undo")
+  };
+  const cells = [];
+  const state = {
+    grid:[], history:[], turn:BLACK, human:BLACK, ai:WHITE,
+    over:false, thinking:false, winner:0, line:[],
+    token:0, timer:null
+  };
+  const opposite = color => 3 - color;
+  const colorName = color => color === BLACK ? "black" : "white";
+  const inside = (r,c) => r >= 0 && r < SIZE && c >= 0 && c < SIZE;
+
+  // Plateau et interface
+  function buildBoard() {
+    const fragment = document.createDocumentFragment();
+
+    for (let r = 0; r < SIZE; r++) {
+      cells[r] = [];
+
+      for (let c = 0; c < SIZE; c++) {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cell";
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+
+        if (!r) cell.classList.add("top");
+        if (!c) cell.classList.add("left");
+        if (r === SIZE - 1) cell.classList.add("bottom");
+        if (c === SIZE - 1) cell.classList.add("right");
+
+        cell.innerHTML =
+          (STARS.has(`${r},${c}`) ? '<span class="hoshi"></span>' : "") +
+          '<span class="ghost"></span>';
+
+        cell.setAttribute("aria-label", `Ligne ${r + 1}, colonne ${c + 1}, vide`);
+        fragment.appendChild(cell);
+        cells[r][c] = cell;
+      }
+    }
+
+    ui.board.appendChild(fragment);
+    ui.board.addEventListener("click", event => {
+      const cell = event.target.closest(".cell");
+      if (cell) playHuman(Number(cell.dataset.r), Number(cell.dataset.c));
+    });
+  }
+
+  function renderBoard() {
+    const last = state.history.at(-1);
+    const winning = new Set(state.line.map(([r,c]) => `${r},${c}`));
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const cell = cells[r][c], color = state.grid[r][c];
+        let stone = cell.querySelector(".stone");
+
+        cell.classList.toggle("taken", !!color);
+        cell.setAttribute("aria-label",
+          `Ligne ${r + 1}, colonne ${c + 1}, ${color ? color === BLACK ? "noir" : "blanc" : "vide"}`);
+
+        if (!color) {
+          stone?.remove();
+          continue;
+        }
+
+        if (!stone) {
+          stone = document.createElement("span");
+          cell.appendChild(stone);
+        }
+
+        stone.className = `stone ${colorName(color)}`;
+        stone.classList.toggle("last", last?.r === r && last?.c === c);
+        stone.classList.toggle("win", winning.has(`${r},${c}`));
+      }
     }
   }
-  return a-h*1.5; // L'IA a maintenant 50% de peur en plus face à tes lignes
-}
-function wMoves(col){const res=[];for(let r=0;r<S;r++)for(let c=0;c<S;c++){if(G[r][c])continue;G[r][c]=col;if(chk(r,c,col))res.push({r,c});G[r][c]=null}return res}
-function cF(r,c,col){G[r][c]=col;let f=false;for(const[dr,dc]of D){let n=1,o=0;for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr*s;nc+=dc*s}if(ib(nr,nc)&&!G[nr][nc])o++}if(n>=4&&o>=1){f=true;break}}G[r][c]=null;return f}
-function cT(r,c,col){G[r][c]=col;let f=false;for(const[dr,dc]of D){let n=1,o=0;for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr*s;nc+=dc*s}if(ib(nr,nc)&&!G[nr][nc])o++}if(n===3&&o===2){f=true;break}}G[r][c]=null;return f}
-function emp(rg=2){const res=[];for(let r=0;r<S;r++)for(let c=0;c<S;c++){if(G[r][c])continue;let nr=false;for(let dr=-rg;dr<=rg&&!nr;dr++)for(let dc=-rg;dc<=rg;dc++){const ar=r+dr,ac2=c+dc;if(ib(ar,ac2)&&G[ar][ac2]){nr=true;break}}if(nr)res.push({r,c})}return res}
-function qS(r,c,col){const o=opp(col);let s=0;if(cF(r,c,col))s+=900000;if(cF(r,c,o))s+=850000;if(cT(r,c,col))s+=120000;if(cT(r,c,o))s+=110000;G[r][c]=col;s+=evalB()*.01;G[r][c]=null;s+=(7-Math.abs(r-7)-Math.abs(c-7))*2;return s}
-function ord(col,lim){return emp(2).map(cell=>({...cell,score:qS(cell.r,cell.c,col)})).sort((a,b)=>b.score-a.score).slice(0,lim)}
-function vcf(col,dep){if(Date.now()>DL)return null;const w=wMoves(col);if(w.length)return w[0];if(dep<=0)return null;for(const cell of emp(2)){if(!cF(cell.r,cell.c,col))continue;G[cell.r][cell.c]=col;const th=wMoves(col);if(th.length>=2){G[cell.r][cell.c]=null;return cell}if(th.length===1){const bl=th[0];G[bl.r][bl.c]=opp(col);const rp=vcf(col,dep-1);G[bl.r][bl.c]=null;G[cell.r][cell.c]=null;if(rp)return cell}else{G[cell.r][cell.c]=null}}return null}
-function vct(col,dep){if(Date.now()>DL)return null;const w=wMoves(col);if(w.length)return w[0];if(dep<=0)return null;const v=vcf(col,Math.min(dep,6));if(v)return v;for(const m of ord(col,10)){if(!cT(m.r,m.c,col)&&!cF(m.r,m.c,col))continue;G[m.r][m.c]=col;const th=wMoves(col);if(th.length>=2){G[m.r][m.c]=null;return m}const df=ord(opp(col),6);let all=df.length>0;for(const d of df){G[d.r][d.c]=opp(col);const rp=vct(col,dep-1);G[d.r][d.c]=null;if(!rp){all=false;break}}G[m.r][m.c]=null;if(all)return m}return null}
-function ng(dep,al,be,col){if(Date.now()>DL)return 0;if(dep===0){const s=evalB();return col===ac?s:-s}const mvs=ord(col,CFG[DF.value].c);if(mvs.length===0)return 0;let bs=-Infinity;for(const m of mvs){G[m.r][m.c]=col;if(chk(m.r,m.c,col)){G[m.r][m.c]=null;return WS-(10-dep)}let sc=-ng(dep-1,-be,-al,opp(col));G[m.r][m.c]=null;bs=Math.max(bs,sc);al=Math.max(al,sc);if(al>=be)break}return bs}
-function choose(){
-  if(mv===0)return{r:7,c:7};
-  const md=DF.value,cfg=CFG[md];DL=Date.now()+cfg.t;
-  // Priorité 1 : Gagner
-  const mw=wMoves(ac);if(mw.length>0)return mw[0];
-  // Priorité 2 : Bloquer une victoire immédiate
-  const ow=wMoves(hc);if(ow.length>0)return ow[0];
-  // Priorité 3 : Chercher victoire forcée
-  if(md==='hard'){const v=vcf(ac,cfg.v);if(v)return v;const t=vct(ac,cfg.v);if(t)return t}
-  // Priorité 4 : Anti-Tunnel Vision (Bloquer les 3 ouverts de l'humain en priorité absolue)
-  let bm=null,rm=ord(ac,cfg.c);
-  for(let d=1;d<=cfg.dep;d++){
-    let cbm=null,cbs=-Infinity,al=-Infinity;
-    for(const m of rm){
-      if(Date.now()>DL)break;
-      // Si le coup bloque une menace de 3 ou 4, on lui donne un bonus écrasant
-      let blockBonus = 0;
-      if(cF(m.r, m.c, hc)) blockBonus = 500000;
-      else if(cT(m.r, m.c, hc)) blockBonus = 50000;
-      
-      G[m.r][m.c]=ac;
-      let sc;
-      if(chk(m.r,m.c,ac))sc=WS+d;
-      else sc=-ng(d-1,-Infinity,-al,hc) + blockBonus;
-      G[m.r][m.c]=null;
-      
-      if(sc>cbs){cbs=sc;cbm=m}
-      al=Math.max(al,sc);
-    }
-    if(Date.now()>DL&&bm)break;
-    if(cbm){bm=cbm;rm=[bm,...rm.filter(m=>m.r!==bm.r||m.c!==bm.c)]}
-    if(cbs>=WS-100)break;
+
+  function renderStatus() {
+    const { over, thinking, winner, turn, human, ai, history } = state;
+    const color = winner || (thinking ? ai : turn);
+    let message = thinking ? "L’IA réfléchit…" :
+      turn === human ? "À vous de jouer" : "Tour de l’ordinateur";
+
+    if (over) message = winner ? winner === human ? "Victoire !" : "L’IA gagne." : "Match nul";
+
+    ui.status.classList.toggle("win", !!winner);
+    ui.status.classList.toggle("thinking", thinking);
+    ui.status.innerHTML =
+      `<span class="dot ${colorName(color)}" aria-hidden="true"></span><span>${message}</span>`;
+
+    ui.board.dataset.turn = colorName(turn);
+    ui.board.classList.toggle("over", over);
+    ui.board.classList.toggle("thinking", thinking);
+    ui.board.setAttribute("aria-busy", String(thinking));
+    ui.undo.disabled = !history.length;
+    ui.hint.textContent = over
+      ? winner ? "Partie terminée. Recommencez ou annulez le dernier tour." : "Le plateau est rempli."
+      : "Alignez au moins cinq pierres. Le point rouge indique le dernier coup.";
   }
-  return bm||rm[0];
-}
-document.getElementById('restart').onclick=reset;U.onclick=undo;HC.onchange=reset;build();reset()})();</script></body></html>
+
+  function cancelPending() {
+    state.token++;
+    clearTimeout(state.timer);
+    state.timer = null;
+    state.thinking = false;
+  }
+
+  function reset() {
+    cancelPending();
+    Object.assign(state, {
+      grid:Array.from({ length:SIZE }, () => Array(SIZE).fill(0)),
+      history:[], turn:BLACK, over:false, winner:0, line:[],
+      human:ui.color.value === "black" ? BLACK : WHITE
+    });
+    state.ai = opposite(state.human);
+    renderBoard();
+    renderStatus();
+    if (state.turn === state.ai) scheduleAI();
+  }
+
+  // Règles
+  function winningLine(r,c,color) {
+    for (const [dr,dc] of DIRS) {
+      const line = [[r,c]];
+
+      for (const sign of [-1,1]) {
+        let nr = r + dr * sign, nc = c + dc * sign;
+
+        while (inside(nr,nc) && state.grid[nr][nc] === color) {
+          if (sign < 0) line.unshift([nr,nc]);
+          else line.push([nr,nc]);
+          nr += dr * sign;
+          nc += dc * sign;
+        }
+      }
+
+      if (line.length >= 5) return line;
+    }
+    return null;
+  }
+
+  function commitMove(r,c) {
+    if (state.over || !inside(r,c) || state.grid[r][c]) return false;
+
+    const color = state.turn;
+    state.grid[r][c] = color;
+    state.history.push({ r,c,color });
+    state.line = winningLine(r,c,color) || [];
+    state.winner = state.line.length ? color : 0;
+    state.over = !!state.winner || state.history.length === SIZE * SIZE;
+
+    if (!state.over) state.turn = opposite(color);
+    renderBoard();
+    renderStatus();
+    return true;
+  }
+
+  function playHuman(r,c) {
+    if (state.thinking || state.turn !== state.human) return;
+    if (commitMove(r,c) && !state.over) scheduleAI();
+  }
+
+  function undo() {
+    if (!state.history.length) return;
+    cancelPending();
+
+    const history = state.history;
+    const count = history.at(-1).color === state.ai && history.length > 1 ? 2 : 1;
+
+    for (let i = 0; i < count; i++) {
+      const move = history.pop();
+      state.grid[move.r][move.c] = 0;
+    }
+
+    Object.assign(state, {
+      over:false, winner:0, line:[],
+      turn:history.length ? opposite(history.at(-1).color) : BLACK
+    });
+
+    renderBoard();
+    renderStatus();
+    if (state.turn === state.ai) scheduleAI();
+  }
+
+  function scheduleAI() {
+    if (state.over || state.turn !== state.ai) return;
+
+    state.thinking = true;
+    const token = ++state.token;
+    renderStatus();
+
+    state.timer = setTimeout(() => {
+      if (token !== state.token) return;
+      state.timer = null;
+
+      try {
+        const move = chooseMove();
+        if (token !== state.token) return;
+        state.thinking = false;
+        if (move) commitMove(move.r,move.c);
+      } catch (error) {
+        state.thinking = false;
+        console.error("Erreur du moteur Gomoku :", error);
+        const fallback = candidates()[0];
+        if (fallback) commitMove(fallback.r,fallback.c);
+      } finally {
+        renderStatus();
+      }
+    }, 50);
+  }
+
+  // Évaluation : les deux joueurs utilisent la même échelle.
+  function lineScore(length,open) {
+    if (length >= 5) return WIN;
+    if (!open) return 0;
+    if (length === 4) return open === 2 ? 120000 : 18000;
+    if (length === 3) return open === 2 ? 3500 : 300;
+    if (length === 2) return open === 2 ? 120 : 25;
+    retu
