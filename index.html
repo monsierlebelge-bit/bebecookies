@@ -366,10 +366,276 @@ button:focus-visible,select:focus-visible { outline:3px solid #b56828; outline-o
   }
 
   // Évaluation : les deux joueurs utilisent la même échelle.
-  function lineScore(length,open) {
+   function lineScore(length,open) {
     if (length >= 5) return WIN;
     if (!open) return 0;
     if (length === 4) return open === 2 ? 120000 : 18000;
     if (length === 3) return open === 2 ? 3500 : 300;
     if (length === 2) return open === 2 ? 120 : 25;
-    retu
+    return open === 2 ? 8 : 1;
+  }
+
+  function evaluate(color) {
+    let total = 0;
+    const grid = state.grid;
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const owner = grid[r][c];
+        if (!owner) continue;
+
+        const sign = owner === color ? 1 : -1;
+
+        for (const [dr,dc] of DIRS) {
+          const pr = r - dr, pc = c - dc;
+          if (inside(pr,pc) && grid[pr][pc] === owner) continue;
+
+          let nr = r, nc = c, length = 0;
+
+          while (inside(nr,nc) && grid[nr][nc] === owner) {
+            length++;
+            nr += dr;
+            nc += dc;
+          }
+
+          const open =
+            Number(inside(pr,pc) && !grid[pr][pc]) +
+            Number(inside(nr,nc) && !grid[nr][nc]);
+
+          total += sign * lineScore(length,open);
+        }
+      }
+    }
+
+    return total;
+  }
+
+  function candidates() {
+    const positions = new Set(), grid = state.grid;
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (!grid[r][c]) continue;
+
+        for (let dr = -2; dr <= 2; dr++) {
+          for (let dc = -2; dc <= 2; dc++) {
+            const nr = r + dr, nc = c + dc;
+
+            if (inside(nr,nc) && !grid[nr][nc]) {
+              positions.add(nr * SIZE + nc);
+            }
+          }
+        }
+      }
+    }
+
+    return [...positions].map(index => ({
+      r:Math.floor(index / SIZE),
+      c:index % SIZE
+    }));
+  }
+
+  function winsAt(r,c,color) {
+    const grid = state.grid;
+    grid[r][c] = color;
+
+    try {
+      for (const [dr,dc] of DIRS) {
+        let length = 1;
+
+        for (const sign of [-1,1]) {
+          let nr = r + dr * sign, nc = c + dc * sign;
+
+          while (inside(nr,nc) && grid[nr][nc] === color) {
+            length++;
+            nr += dr * sign;
+            nc += dc * sign;
+          }
+        }
+
+        if (length >= 5) return true;
+      }
+
+      return false;
+    } finally {
+      grid[r][c] = 0;
+    }
+  }
+
+  function potential(r,c,color) {
+    const grid = state.grid;
+    let score = 0;
+    grid[r][c] = color;
+
+    try {
+      for (const [dr,dc] of DIRS) {
+        let length = 1, open = 0;
+
+        for (const sign of [-1,1]) {
+          let nr = r + dr * sign, nc = c + dc * sign;
+
+          while (inside(nr,nc) && grid[nr][nc] === color) {
+            length++;
+            nr += dr * sign;
+            nc += dc * sign;
+          }
+
+          if (inside(nr,nc) && !grid[nr][nc]) open++;
+        }
+
+        score += lineScore(length,open);
+      }
+
+      return score;
+    } finally {
+      grid[r][c] = 0;
+    }
+  }
+
+  function orderedMoves(color,width,list = candidates()) {
+    const wins = list.filter(m => winsAt(m.r,m.c,color));
+    if (wins.length) return wins;
+
+    const opponent = opposite(color);
+    const blocks = list.filter(m => winsAt(m.r,m.c,opponent));
+    if (blocks.length) return blocks;
+
+    return list.map(move => ({
+      ...move,
+      score:
+        potential(move.r,move.c,color) +
+        potential(move.r,move.c,opponent) * 1.15 -
+        Math.abs(move.r - 7) -
+        Math.abs(move.c - 7)
+    }))
+    .sort((a,b) => b.score - a.score)
+    .slice(0,width);
+  }
+
+  const TIMEOUT = Symbol("timeout");
+  let deadline = 0, searchWidth = 0;
+
+  function checkTime() {
+    if (performance.now() >= deadline) throw TIMEOUT;
+  }
+
+  function negamax(depth,alpha,beta,color,ply) {
+    checkTime();
+
+    const list = candidates();
+    if (!list.length) return 0;
+
+    if (list.some(m => winsAt(m.r,m.c,color))) {
+      return WIN - ply;
+    }
+
+    const threats = list.filter(
+      m => winsAt(m.r,m.c,opposite(color))
+    );
+
+    if (threats.length > 1) return -WIN + ply + 1;
+    if (depth <= 0) return evaluate(color);
+
+    const moves = threats.length
+      ? threats
+      : orderedMoves(color,searchWidth,list);
+
+    let best = -Infinity;
+
+    for (const move of moves) {
+      checkTime();
+      state.grid[move.r][move.c] = color;
+      let score;
+
+      try {
+        score = -negamax(
+          depth - 1,-beta,-alpha,opposite(color),ply + 1
+        );
+      } finally {
+        state.grid[move.r][move.c] = 0;
+      }
+
+      best = Math.max(best,score);
+      alpha = Math.max(alpha,score);
+
+      if (alpha >= beta) break;
+    }
+
+    return best;
+  }
+
+  function chooseMove() {
+    if (!state.history.length) return { r:7,c:7 };
+
+    const config = LEVELS[ui.level.value] || LEVELS.hard;
+    const color = state.ai;
+
+    searchWidth = config.width;
+    deadline = performance.now() + config.time;
+
+    let moves = orderedMoves(color,searchWidth);
+    if (!moves.length) return null;
+
+    if (
+      winsAt(moves[0].r,moves[0].c,color) ||
+      moves.length === 1
+    ) {
+      return moves[0];
+    }
+
+    let best = moves[0];
+
+    for (let depth = 1; depth <= config.depth; depth++) {
+      let iterationBest = null;
+      let bestScore = -Infinity;
+      let alpha = -Infinity;
+
+      try {
+        for (const move of moves) {
+          checkTime();
+          state.grid[move.r][move.c] = color;
+          let score;
+
+          try {
+            score = -negamax(
+              depth - 1,-Infinity,-alpha,opposite(color),1
+            );
+          } finally {
+            state.grid[move.r][move.c] = 0;
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            iterationBest = move;
+          }
+
+          alpha = Math.max(alpha,score);
+        }
+
+        best = iterationBest || best;
+
+        moves = [
+          best,
+          ...moves.filter(m => m.r !== best.r || m.c !== best.c)
+        ];
+
+        if (bestScore >= WIN - SIZE * SIZE) break;
+      } catch (error) {
+        if (error !== TIMEOUT) throw error;
+        break;
+      }
+    }
+
+    return best;
+  }
+
+  ui.restart.addEventListener("click",reset);
+  ui.color.addEventListener("change",reset);
+  ui.undo.addEventListener("click",undo);
+
+  buildBoard();
+  reset();
+})();
+</script>
+</body>
+</html>
