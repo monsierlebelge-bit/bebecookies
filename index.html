@@ -1,126 +1,86 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cap sur l’Europe de l’Ouest</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#EAF0F4;--ink:#10233A;--muted:#4B6178;--card:#fff;--line:#C4D2DE;--accent:#1F5FBF;--on:#fff;--good:#1E7B4F;--bad:#B3392F;--gb:#E3F3EA;--bb:#F8E4E1;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1A27;--ink:#E8EEF4;--muted:#9DB0C3;--card:#162637;--line:#2B4157;--accent:#6FA8FF;--on:#0E1A27;--good:#5FD39A;--bad:#FF8A7E;--gb:#123B2A;--bb:#43201C;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0E1A27;--ink:#E8EEF4;--muted:#9DB0C3;--card:#162637;--line:#2B4157;--accent:#6FA8FF;--on:#0E1A27;--good:#5FD39A;--bad:#FF8A7E;--gb:#123B2A;--bb:#43201C;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:520px;margin:0 auto;padding:20px 18px 40px}
-h1,h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;line-height:1.15}
-h1{font-size:34px;font-weight:800;margin-bottom:16px}
-h2{font-size:21px;font-weight:600}
-.flags{display:flex;gap:8px;margin-bottom:14px}
-.flag{display:inline-block;width:30px;height:20px;border:1px solid var(--line);border-radius:3px;vertical-align:-4px;margin-right:8px;flex:none}
-.flags .flag{width:46px;height:31px;margin:0}
-.sub{color:var(--muted);margin:0 0 22px}
-.card{display:block;width:100%;text-align:left;padding:16px;margin:12px 0;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:inherit;font:inherit;cursor:pointer}
-.card h2{margin-bottom:4px}
-.card span{color:var(--muted)}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;color:var(--muted);font-size:15px}
-.back{background:none;border:0;color:var(--accent);font:inherit;padding:8px 0;cursor:pointer}
-.where{margin:0 0 6px;color:var(--muted)}
-.q{margin:0 0 14px;font-size:23px}
-.clues{margin:0 0 8px;padding-left:22px}
-.clues li{margin:6px 0}
-.hint{color:var(--muted);font-size:15px;margin:0 0 10px}
-.opt{display:block;width:100%;text-align:left;min-height:48px;padding:12px 14px;margin:8px 0;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;cursor:pointer}
-.opt:disabled{cursor:default}
-.opt.ok{border-color:var(--good);background:var(--gb)}
-.opt.ko{border-color:var(--bad);background:var(--bb)}
-.fact{margin:16px 0 4px;padding:12px 14px;border-left:4px solid var(--accent);background:var(--card)}
-.go{display:block;width:100%;min-height:48px;margin:14px 0 0;padding:12px;border:0;border-radius:10px;background:var(--accent);color:var(--on);font:inherit;font-weight:600;cursor:pointer}
-.ghost{background:none;border:1.5px solid var(--line);color:var(--ink)}
-button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.score{font:800 56px/1 "Bricolage Grotesque",system-ui,sans-serif;margin:8px 0 12px}
-</style>
-</head>
-<body>
-<main id="app" aria-live="polite"></main>
-<script type="application/json" id="d">
-{"quiz":[
-{"c":"DE","q":"Quelle grande fête de la bière se tient à Munich ?","o":["L’Oktoberfest","Le Karneval de Cologne","Le marché de Noël de Nuremberg","La Saint-Martin"],"f":"Malgré son nom, elle commence fin septembre et se termine début octobre."},
-{"c":"DE","q":"Quelle ville allemande était coupée en deux par un mur jusqu’en 1989 ?","o":["Berlin","Hambourg","Munich","Dresde"],"f":"Le mur de Berlin est tombé le 9 novembre 1989."},
-{"c":"DE","q":"Quel conte des frères Grimm met en scène une fillette, une grand-mère et un loup ?","o":["Le Petit Chaperon rouge","Le Petit Poucet","Pinocchio","La Petite Sirène"],"f":"Les frères Grimm ont rassemblé des contes populaires allemands au XIXe siècle. Pinocchio, lui, est italien."},
-{"c":"FR","q":"Quel monument parisien a été construit pour l’Exposition universelle de 1889 ?","o":["La tour Eiffel","L’Arc de triomphe","Le Sacré-Cœur","Le Grand Palais"],"f":"Elle ne devait rester que vingt ans, mais elle est devenue le symbole de Paris."},
-{"c":"FR","q":"Quel fromage à pâte persillée vieillit dans les caves du Combalou ?","o":["Le roquefort","Le camembert","Le comté","Le brie"],"f":"Les caves naturelles du Combalou, dans l’Aveyron, donnent au roquefort son goût."},
-{"c":"FR","q":"Quel événement rappelle la fête nationale du 14 juillet ?","o":["La prise de la Bastille en 1789","Le sacre de Napoléon","La fin de la Première Guerre mondiale","Le couronnement de Louis XIV"],"f":"La date rappelle aussi la fête de la Fédération, en 1790."},
-{"c":"ES","q":"Quel architecte catalan a donné à la Sagrada Família son style unique ?","o":["Antoni Gaudí","Diego Velázquez","Joan Miró","Pablo Picasso"],"f":"Commencée en 1882, la basilique est restée en chantier pendant plus d’un siècle."},
-{"c":"ES","q":"Quelle danse espagnole est née en Andalousie ?","o":["Le flamenco","Le tango","La samba","La valse"],"f":"L’UNESCO l’a inscrit au patrimoine culturel immatériel en 2010."},
-{"c":"ES","q":"Quel plat à base de riz est originaire de Valence ?","o":["La paella","Le gaspacho","La tortilla","Les churros"],"f":"Son nom vient de la grande poêle plate dans laquelle on la prépare."},
-{"c":"IT","q":"Quelle pizza porte les couleurs du drapeau italien : tomate, mozzarella, basilic ?","o":["La margherita","La quatre fromages","La calzone","La napolitaine"],"f":"Selon la légende, elle porte le nom de la reine Marguerite de Savoie, venue à Naples en 1889."},
-{"c":"IT","q":"Qui a peint le plafond de la chapelle Sixtine, au Vatican ?","o":["Michel-Ange","Raphaël","Botticelli","Titien"],"f":"Il y a travaillé de 1508 à 1512."},
-{"c":"IT","q":"Quelle ville italienne est bâtie sur une lagune et traversée de canaux ?","o":["Venise","Florence","Naples","Vérone"],"f":"Venise s’étend sur une centaine de petits îlots reliés par des ponts."},
-{"c":"BE","q":"Avec quel accompagnement sert-on traditionnellement les moules en Belgique ?","o":["Des frites","Des gnocchis","Du risotto","Des pierogis"],"f":"Belges et Français se disputent l’origine des frites, mais le duo moules-frites est un classique belge."},
-{"c":"BE","q":"Quel instrument a été inventé par le Belge Adolphe Sax ?","o":["Le saxophone","La clarinette","La trompette","Le violon"],"f":"Adolphe Sax, né à Dinant, l’a breveté à Paris en 1846."},
-{"c":"BE","q":"Que brassent les moines trappistes belges, célèbres dans le monde entier ?","o":["De la bière","Du vin","Du cidre","Du whisky"],"f":"La culture de la bière belge est inscrite au patrimoine immatériel de l’UNESCO depuis 2016."}
-],
-"who":[
-{"c":"IT","k":["Je suis né en Toscane en 1452.","J’ai dessiné des machines volantes et étudié l’anatomie.","J’ai peint la Joconde."],"o":["Léonard de Vinci","Michel-Ange","Galilée","Raphaël"],"f":"Léonard de Vinci est mort en France, à Amboise, en 1519."},
-{"c":"DE","k":["Je suis né à Bonn.","Je suis devenu sourd, mais j’ai continué à composer.","Ma Neuvième Symphonie contient l’Ode à la joie."],"o":["Beethoven","Mozart","Bach","Schubert"],"f":"La mélodie de l’Ode à la joie est devenue l’hymne de l’Union européenne."},
-{"c":"FR","k":["Je suis né en Corse en 1769.","J’ai été empereur des Français.","J’ai perdu la bataille de Waterloo, en Belgique, en 1815."],"o":["Napoléon Bonaparte","Louis XIV","Charlemagne","Charles de Gaulle"],"f":"Waterloo se trouve en Belgique, au sud de Bruxelles."},
-{"c":"ES","k":["Je suis né à Figueres, en Catalogne, en 1904.","Je suis un peintre surréaliste à la moustache relevée.","J’ai peint des montres molles qui fondent."],"o":["Salvador Dalí","Pablo Picasso","Francisco de Goya","Joan Miró"],"f":"Son tableau La Persistance de la mémoire date de 1931."},
-{"c":"ES","k":["Je suis un écrivain espagnol né en 1547.","J’ai écrit un roman où un homme se bat contre des moulins à vent.","Mon héros s’appelle Don Quichotte."],"o":["Miguel de Cervantes","Federico García Lorca","Lope de Vega","Pedro Calderón"],"f":"Le premier tome de Don Quichotte est paru en 1605."},
-{"c":"BE","k":["Je suis né à Bruxelles en 1907.","Mon vrai nom est Georges Remi.","J’ai créé Tintin."],"o":["Hergé","Franquin","Peyo","Morris"],"f":"Le nom Hergé vient des initiales inversées de Georges Remi : R. G."},
-{"c":"DE","k":["Je suis né à Francfort en 1749.","J’ai écrit la pièce Faust.","Je suis l’un des plus grands écrivains de langue allemande."],"o":["Goethe","Schiller","Thomas Mann","Franz Kafka"],"f":"Goethe était aussi scientifique et ministre à la cour de Weimar."},
-{"c":"FR","k":["Je suis une chanteuse née à Paris en 1915.","On m’appelait la Môme.","J’ai chanté La Vie en rose."],"o":["Édith Piaf","Dalida","Joséphine Baker","Barbara"],"f":"La Vie en rose date de 1947."}
-]}
-</script>
-<script>
-const $=s=>document.querySelector(s),app=$('#app'),D=JSON.parse($('#d').textContent);
-const F={DE:['Allemagne','to bottom,#000 0 33.3%,#d00 33.3% 66.6%,#fc0 66.6%'],FR:['France','to right,#0055a4 0 33.3%,#fff 33.3% 66.6%,#ef4135 66.6%'],ES:['Espagne','to bottom,#c60b1e 0 25%,#ffc400 25% 75%,#c60b1e 75%'],IT:['Italie','to right,#009246 0 33.3%,#fff 33.3% 66.6%,#ce2b37 66.6%'],BE:['Belgique','to right,#000 0 33.3%,#fae042 33.3% 66.6%,#ed2939 66.6%']};
-const flag=c=>`<span class="flag" style="background:linear-gradient(${F[c][1]})"></span>`;
-const sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
-let S={};
-function home(){
-  app.innerHTML=`<h1>Cap sur l’Europe de l’Ouest</h1><div class="flags">${Object.keys(F).map(flag).join('')}</div><p class="sub">Allemagne, France, Espagne, Italie, Belgique : teste ta culture.</p><button class="card" data-m="q"><h2>Quiz culture</h2><span>10 questions tirées au hasard, 1 point chacune.</span></button><button class="card" data-m="w"><h2>Qui suis-je ?</h2><span>8 personnages. Moins tu prends d’indices, plus tu gagnes de points (jusqu’à 3).</span></button>`;
-  app.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>start(b.dataset.m));
-}
-function start(m){S={m,list:m=='q'?sh(D.quiz).slice(0,10):sh(D.who),i:0,score:0};round()}
-function round(){const it=S.list[S.i];S.step=1;S.dis=[];S.done=false;S.pick=null;S.win=false;S.opts=sh(it.o);window.scrollTo(0,0);draw()}
-function draw(){
-  const it=S.list[S.i],n=S.list.length,w=S.m=='w';
-  let h=`<div class="top"><button class="back" id="bk">Menu</button><span>${w?'Personnage':'Question'} ${S.i+1} sur ${n}</span><span>${S.score} point${S.score>1?'s':''}</span></div>`;
-  if(!w){h+=`<p class="where">${flag(it.c)}${F[it.c][0]}</p><h2 class="q">${it.q}</h2>`}
-  else{h+=`<h2 class="q">Qui suis-je ?</h2><ol class="clues">${it.k.slice(0,S.step).map(k=>`<li>${k}</li>`).join('')}</ol>`;
-    if(!S.done)h+=`<p class="hint">Bonne réponse maintenant : ${4-S.step} point${4-S.step>1?'s':''}.</p>`}
-  S.opts.forEach((o,k)=>{
-    let c='opt';
-    if(o==it.o[0]){if(S.done)c+=' ok'}else if(S.dis.includes(o)||S.pick==o)c+=' ko';
-    h+=`<button class="${c}" data-k="${k}"${S.done||S.dis.includes(o)?' disabled':''}>${o}</button>`;
-  });
-  if(w&&!S.done&&S.step<3)h+=`<button class="go ghost" id="hint">Indice suivant (−1 point)</button>`;
-  if(S.done){
-    h+=`<div class="fact"><b>${S.win?'Bien joué.':'Pas cette fois.'}</b> ${w?flag(it.c)+F[it.c][0]+'. ':''}${it.f}</div><button class="go" id="nx">${S.i+1<n?'Suivant':'Voir mon score'}</button>`;
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gomoku IA Extrême</title><style>:root{--p:#f3e9d2;--pd:#e6d5ae;--w:#e2c48d;--i:#8b0000;--k:#2b1d14;--b:min(92vw,560px)}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px 0 28px;color:var(--k);font-family:Georgia,serif;background:radial-gradient(circle at 20% 10%,#fbf5e6 0,transparent 55%),radial-gradient(circle at 80% 90%,var(--pd) 0,transparent 60%),var(--p)}header{text-align:center}h1{margin:0;font-size:1.8rem;letter-spacing:.2em;color:var(--i)}h1 small{display:block;font-size:.45em;letter-spacing:.15em;color:var(--k);opacity:.7;margin-top:4px}.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.control-group{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(139,0,0,.35);border-radius:99px;background:rgba(255,255,255,.35);font-size:.9rem}select{font:inherit;color:var(--k);background:transparent;border:0;outline:0}.status{min-height:3.2em;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 20px;border:1px solid var(--i);border-radius:99px;background:rgba(255,255,255,.45);font-size:1rem;text-align:center}.status.win{background:var(--i);color:#fbf1d9}.status.thinking{background:rgba(139,0,0,.1)}.dot{width:16px;height:16px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.4)}.dot.black{background:radial-gradient(circle at 35% 30%,#666,#111 60%)}.dot.white{background:radial-gradient(circle at 35% 30%,#fff,#cfcfcf 70%);border:1px solid #aaa}#board{width:var(--b);height:var(--b);display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);background:linear-gradient(135deg,rgba(255,255,255,.25),transparent 50%),var(--w);border:3px solid var(--i);border-radius:6px;box-shadow:0 18px 40px rgba(60,30,10,.3);touch-action:manipulation}.cell{position:relative;padding:0;margin:0;border:0;background:transparent;cursor:pointer;min-width:0;min-height:0}.cell::before,.cell::after{content:"";position:absolute;background:var(--i);opacity:.75;pointer-events:none}.cell::before{left:0;right:0;top:50%;height:1px}.cell::after{top:0;bottom:0;left:50%;width:1px}.cell.c0::before{left:50%}.cell.c14::before{right:50%}.cell.r0::after{top:50%}.cell.r14::after{bottom:50%}.cell.star .hoshi{position:absolute;left:50%;top:50%;width:22%;height:22%;transform:translate(-50%,-50%);background:var(--i);border-radius:50%}.ghost{position:absolute;inset:9%;border-radius:50%;opacity:0;transition:.18s;pointer-events:none;z-index:1}#board.turn-black .ghost{background:#111}#board.turn-white .ghost{background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}#board:not(.over):not(.thinking) .cell:not(.taken):hover .ghost{opacity:.35;transform:scale(1)}.stone{position:absolute;inset:9%;border-radius:50%;z-index:2;pointer-events:none;animation:d .35s both;box-shadow:0 3px 5px rgba(0,0,0,.4)}.stone.black{background:radial-gradient(circle at 35% 30%,#707070,#151515 55%,#000)}.stone.white{background:radial-gradient(circle at 35% 30%,#fff,#ececec 55%,#bdbdbd)}@keyframes d{from{opacity:0;transform:translateY(-18px) scale(1.25)}to{opacity:1;transform:translateY(0) scale(1)}}.stone.last::after{content:"";position:absolute;left:50%;top:50%;width:22%;height:22%;border-radius:50%;transform:translate(-50%,-50%);background:var(--i)}.stone.win{animation:d .35s both,p 1.1s ease-in-out .4s infinite}@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(139,0,0,.7)}50%{box-shadow:0 0 0 6px rgba(139,0,0,0)}}.actions{display:flex;gap:10px}button.action{font:inherit;font-size:1rem;padding:10px 22px;color:var(--i);background:rgba(255,255,255,.18);border:2px solid var(--i);border-radius:99px;cursor:pointer}button.action:hover{background:var(--i);color:#fbf1d9}button.action:disabled{opacity:.5}.hint{font-size:.85rem;opacity:.78;text-align:center;padding:0 16px;max-width:600px}</style></head><body>
+<header><h1>五子棋<small>Gomoku · IA Extrême V2</small></h1></header>
+<div class="controls"><label class="control-group">Vous jouez<select id="humanColor"><option value="black">Noir (先手)</option><option value="white">Blanc (后手)</option></select></label><label class="control-group">Difficulté<select id="difficulty"><option value="normal">Stratégique</option><option value="hard" selected>Extrême</option></select></label></div>
+<div class="status" id="status"></div><div id="board" class="turn-black"></div><div class="hint" id="hint">L’IA analyse vos lignes avec une précision chirurgicale.</div>
+<div class="actions"><button class="action" id="restart">Recommencer</button><button class="action" id="undo">Annuler</button></div>
+<script>(()=>{'use strict';const S=15,D=[[0,1],[1,0],[1,1],[1,-1]],ST=[[3,3],[3,11],[7,7],[11,3],[11,11]];const B=document.getElementById('board'),St=document.getElementById('status'),H=document.getElementById('hint'),HC=document.getElementById('humanColor'),DF=document.getElementById('difficulty'),U=document.getElementById('undo');let G,C=[],cur,ov,thk,mv,hist=[],hc='black',ac='white',tk=0,lm=null;
+function build(){for(let r=0;r<S;r++){C[r]=[];for(let c=0;c<S;c++){const el=document.createElement('button');el.className='cell'+(c===0?' c0':'')+(c===14?' c14':'')+(r===0?' r0':'')+(r===14?' r14':'');if(ST.some(([sr,sc])=>sr===r&&sc===c)){el.classList.add('star');const h=document.createElement('span');h.className='hoshi';el.appendChild(h)}const g=document.createElement('span');g.className='ghost';el.appendChild(g);el.onclick=()=>playHuman(r,c);B.appendChild(el);C[r][c]=el}}}
+function reset(){tk++;G=Array.from({length:S},()=>Array(S).fill(null));cur='black';ov=false;thk=false;mv=0;hist=[];lm=null;B.classList.remove('over','thinking');B.classList.add('turn-black');for(const row of C)for(const el of row){el.classList.remove('taken');el.querySelector('.stone')?.remove()}hc=HC.value;ac=hc==='black'?'white':'black';U.disabled=true;upd();if(hc==='white')sched()}
+function ib(r,c){return r>=0&&r<S&&c>=0&&c<S}
+function place(r,c,col){if(lm)C[lm.r][lm.c].querySelector('.stone')?.classList.remove('last');const s=document.createElement('span');s.className=`stone ${col} last`;C[r][c].appendChild(s);C[r][c].classList.add('taken');lm={r,c,col}}
+function move(r,c,col){if(ov||G[r][c])return false;G[r][c]=col;mv++;hist.push({r,c,col});place(r,c,col);const line=win(r,c,col);if(line){ov=true;hl(line);B.classList.add('over');upd({winner:col});return true}if(mv===S*S){ov=true;B.classList.add('over');upd({draw:true});return true}cur=col==='black'?'white':'black';upd();return true}
+function playHuman(r,c){if(ov||thk||cur!==hc||G[r][c])return;if(move(r,c,hc)&&!ov)sched()}
+function win(r,c,col){for(const[dr,dc]of D){const line=[[r,c]];for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){line.push([nr,nc]);nr+=dr*s;nc+=dc*s}}if(line.length>=5)return line.slice(0,5)}return null}
+function hl(l){for(const[r,c]of l)C[r][c].querySelector('.stone')?.classList.add('win')}
+function upd(res={}){St.classList.toggle('win',!!res.winner);St.classList.toggle('thinking',thk);if(res.winner){St.innerHTML=res.winner===hc?'<span class="dot black"></span><span>Victoire !</span>':'<span class="dot white"></span><span>L’IA gagne.</span>';H.textContent=res.winner===hc?'Tu as battu la V2. Respect.':'La V2 a bloqué toutes tes lignes.';return}if(res.draw){St.textContent='Match nul';return}if(thk){St.innerHTML=`<span class="dot ${ac}"></span><span>Analyse chirurgicale…</span>`;return}St.innerHTML=`<span class="dot ${cur}"></span><span>Tour : ${cur===hc?'Vous':'Ordinateur'}</span>`;B.classList.toggle('turn-black',cur==='black');B.classList.toggle('turn-white',cur==='white');U.disabled=thk||hist.length===0}
+function sched(){if(ov)return;thk=true;B.classList.add('thinking');upd();const t=++tk;setTimeout(()=>{if(t!==tk||ov)return;const m=choose();thk=false;B.classList.remove('thinking');if(m)move(m.r,m.c,ac);if(!ov)upd()},50)}
+function undo(){if(thk||hist.length===0)return;tk++;ov=false;thk=false;let rc=1;if(hist[hist.length-1].col===ac&&hist.length>=2)rc=2;for(let i=0;i<rc&&hist.length;i++){const m=hist.pop();G[m.r][m.c]=null;C[m.r][m.c].classList.remove('taken');C[m.r][m.c].querySelector('.stone')?.remove();mv--}lm=hist.length?{...hist[hist.length-1]}:null;if(lm)C[lm.r][lm.c].querySelector('.stone')?.classList.add('last');B.classList.remove('over','thinking');cur=hist.length?(hist[hist.length-1].col==='black'?'white':'black'):'black';upd();if(cur===ac)sched()}
+const WS=1e9,FS=120000,OS=18000,TS=3500,OT=800,TW=120,CFG={normal:{dep:4,t:300,c:10,v:4},hard:{dep:8,t:1500,c:14,v:8}};let DL=0;const opp=c=>c==='black'?'white':'black';
+function chk(r,c,col){for(const[dr,dc]of D){let n=1;for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr*s;nc+=dc*s}}if(n>=5)return true}return false}
+// NOUVELLE FONCTION D'ÉVALUATION (Scan de lignes, plus de fenêtres glissantes)
+function evalB(){
+  let a=0,h=0;
+  for(let r=0;r<S;r++)for(let c=0;c<S;c++){
+    if(!G[r][c])continue;
+    const col=G[r][c],sgn=(col===ac)?1:-1;
+    for(const[dr,dc]of D){
+      const pr=r-dr,pc=c-dc;
+      if(ib(pr,pc)&&G[pr][pc]===col)continue; // On ne compte qu'une fois par ligne
+      let n=0,nr=r,nc=c;
+      while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr;nc+=dc}
+      let o=0;
+      if(ib(pr,pc)&&!G[pr][pc])o++;
+      if(ib(nr,nc)&&!G[nr][nc])o++;
+      let sc=0;
+      if(n>=5)sc=WS;else if(n===4)sc=(o>=1?FS:FS*.3);else if(n===3)sc=(o===2?OS:TS);else if(n===2)sc=(o===2?OT:TW);else if(n===1&&o===2)sc=10;
+      if(sgn===1)a+=sc;else h+=sc;
+    }
   }
-  app.innerHTML=h;
-  app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>pick(+b.dataset.k));
-  $('#bk').onclick=home;
-  const x=$('#hint');if(x)x.onclick=()=>{S.step++;draw()};
-  const y=$('#nx');if(y)y.onclick=next;
+  return a-h*1.5; // L'IA a maintenant 50% de peur en plus face à tes lignes
 }
-function pick(k){
-  const it=S.list[S.i],o=S.opts[k];
-  if(o==it.o[0]){S.done=true;S.win=true;S.pick=o;S.score+=S.m=='q'?1:4-S.step}
-  else if(S.m=='q'){S.done=true;S.pick=o}
-  else{S.dis.push(o);if(S.step<3)S.step++;else{S.done=true;S.pick=o}}
-  draw();
+function wMoves(col){const res=[];for(let r=0;r<S;r++)for(let c=0;c<S;c++){if(G[r][c])continue;G[r][c]=col;if(chk(r,c,col))res.push({r,c});G[r][c]=null}return res}
+function cF(r,c,col){G[r][c]=col;let f=false;for(const[dr,dc]of D){let n=1,o=0;for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr*s;nc+=dc*s}if(ib(nr,nc)&&!G[nr][nc])o++}if(n>=4&&o>=1){f=true;break}}G[r][c]=null;return f}
+function cT(r,c,col){G[r][c]=col;let f=false;for(const[dr,dc]of D){let n=1,o=0;for(const s of[1,-1]){let nr=r+dr*s,nc=c+dc*s;while(ib(nr,nc)&&G[nr][nc]===col){n++;nr+=dr*s;nc+=dc*s}if(ib(nr,nc)&&!G[nr][nc])o++}if(n===3&&o===2){f=true;break}}G[r][c]=null;return f}
+function emp(rg=2){const res=[];for(let r=0;r<S;r++)for(let c=0;c<S;c++){if(G[r][c])continue;let nr=false;for(let dr=-rg;dr<=rg&&!nr;dr++)for(let dc=-rg;dc<=rg;dc++){const ar=r+dr,ac2=c+dc;if(ib(ar,ac2)&&G[ar][ac2]){nr=true;break}}if(nr)res.push({r,c})}return res}
+function qS(r,c,col){const o=opp(col);let s=0;if(cF(r,c,col))s+=900000;if(cF(r,c,o))s+=850000;if(cT(r,c,col))s+=120000;if(cT(r,c,o))s+=110000;G[r][c]=col;s+=evalB()*.01;G[r][c]=null;s+=(7-Math.abs(r-7)-Math.abs(c-7))*2;return s}
+function ord(col,lim){return emp(2).map(cell=>({...cell,score:qS(cell.r,cell.c,col)})).sort((a,b)=>b.score-a.score).slice(0,lim)}
+function vcf(col,dep){if(Date.now()>DL)return null;const w=wMoves(col);if(w.length)return w[0];if(dep<=0)return null;for(const cell of emp(2)){if(!cF(cell.r,cell.c,col))continue;G[cell.r][cell.c]=col;const th=wMoves(col);if(th.length>=2){G[cell.r][cell.c]=null;return cell}if(th.length===1){const bl=th[0];G[bl.r][bl.c]=opp(col);const rp=vcf(col,dep-1);G[bl.r][bl.c]=null;G[cell.r][cell.c]=null;if(rp)return cell}else{G[cell.r][cell.c]=null}}return null}
+function vct(col,dep){if(Date.now()>DL)return null;const w=wMoves(col);if(w.length)return w[0];if(dep<=0)return null;const v=vcf(col,Math.min(dep,6));if(v)return v;for(const m of ord(col,10)){if(!cT(m.r,m.c,col)&&!cF(m.r,m.c,col))continue;G[m.r][m.c]=col;const th=wMoves(col);if(th.length>=2){G[m.r][m.c]=null;return m}const df=ord(opp(col),6);let all=df.length>0;for(const d of df){G[d.r][d.c]=opp(col);const rp=vct(col,dep-1);G[d.r][d.c]=null;if(!rp){all=false;break}}G[m.r][m.c]=null;if(all)return m}return null}
+function ng(dep,al,be,col){if(Date.now()>DL)return 0;if(dep===0){const s=evalB();return col===ac?s:-s}const mvs=ord(col,CFG[DF.value].c);if(mvs.length===0)return 0;let bs=-Infinity;for(const m of mvs){G[m.r][m.c]=col;if(chk(m.r,m.c,col)){G[m.r][m.c]=null;return WS-(10-dep)}let sc=-ng(dep-1,-be,-al,opp(col));G[m.r][m.c]=null;bs=Math.max(bs,sc);al=Math.max(al,sc);if(al>=be)break}return bs}
+function choose(){
+  if(mv===0)return{r:7,c:7};
+  const md=DF.value,cfg=CFG[md];DL=Date.now()+cfg.t;
+  // Priorité 1 : Gagner
+  const mw=wMoves(ac);if(mw.length>0)return mw[0];
+  // Priorité 2 : Bloquer une victoire immédiate
+  const ow=wMoves(hc);if(ow.length>0)return ow[0];
+  // Priorité 3 : Chercher victoire forcée
+  if(md==='hard'){const v=vcf(ac,cfg.v);if(v)return v;const t=vct(ac,cfg.v);if(t)return t}
+  // Priorité 4 : Anti-Tunnel Vision (Bloquer les 3 ouverts de l'humain en priorité absolue)
+  let bm=null,rm=ord(ac,cfg.c);
+  for(let d=1;d<=cfg.dep;d++){
+    let cbm=null,cbs=-Infinity,al=-Infinity;
+    for(const m of rm){
+      if(Date.now()>DL)break;
+      // Si le coup bloque une menace de 3 ou 4, on lui donne un bonus écrasant
+      let blockBonus = 0;
+      if(cF(m.r, m.c, hc)) blockBonus = 500000;
+      else if(cT(m.r, m.c, hc)) blockBonus = 50000;
+      
+      G[m.r][m.c]=ac;
+      let sc;
+      if(chk(m.r,m.c,ac))sc=WS+d;
+      else sc=-ng(d-1,-Infinity,-al,hc) + blockBonus;
+      G[m.r][m.c]=null;
+      
+      if(sc>cbs){cbs=sc;cbm=m}
+      al=Math.max(al,sc);
+    }
+    if(Date.now()>DL&&bm)break;
+    if(cbm){bm=cbm;rm=[bm,...rm.filter(m=>m.r!==bm.r||m.c!==bm.c)]}
+    if(cbs>=WS-100)break;
+  }
+  return bm||rm[0];
 }
-function next(){S.i++;S.i<S.list.length?round():end()}
-function end(){
-  const max=S.m=='q'?S.list.length:S.list.length*3,r=S.score/max;
-  const msg=r>=.8?'Excellent voyage !':r>=.5?'Pas mal, encore un petit détour.':'Premier voyage : on repart ?';
-  app.innerHTML=`<h1>${msg}</h1><p class="score">${S.score} / ${max}</p><p class="sub">${S.m=='q'?'Quiz culture':'Qui suis-je ?'}, terminé.</p><button class="go" id="again">Rejouer</button><button class="go ghost" id="menu">Retour au menu</button>`;
-  $('#again').onclick=()=>start(S.m);$('#menu').onclick=home;window.scrollTo(0,0);
-}
-home();
-</script>
-</body>
-</html>
+document.getElementById('restart').onclick=reset;U.onclick=undo;HC.onchange=reset;build();reset()})();</script></body></html>
